@@ -1,2 +1,2 @@
 # pi-fan
-Raspberry pi fan controll daemon
+Raspberry pi fan control daemon
