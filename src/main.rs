@@ -1,7 +1,10 @@
 use rppal::pwm;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::{thread, time};
+use std::{fs, thread, time};
+
+const FAIL_TEMP: i32 = -100;
+const FAIL_SPEED: f32 = 50.0;
 
 #[derive(Deserialize)]
 struct Config {
@@ -76,11 +79,19 @@ impl Curve {
 }
 
 fn get_temp() -> i32 {
-    return 0;
+    fs::read_to_string("/sys/class/thermal/thermal_zone0/temp")
+        .expect("Failed to read temp")
+        .trim()
+        .parse::<i32>()
+        .unwrap_or(FAIL_TEMP) / 1000
 }
 
 fn get_speed(temp: i32, curve: &Curve) -> f32 {
-    return curve.get_value_at(temp);
+    if temp == FAIL_TEMP {
+        FAIL_SPEED
+    } else {
+        curve.get_value_at(temp)
+    }
 }
 
 fn update_speed(pin: &pwm::Pwm, curve: &Curve) {
